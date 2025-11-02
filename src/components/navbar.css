@@ -1,0 +1,12 @@
+/* Minimal navbar styles (most styling is inline) */
+:root {
+  --brand-color: #111827;
+}
+
+/* Ensure page background pairs well with inline styles */
+body {
+  margin: 0;
+  background: #f3f4f6;
+  color: #111827;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+}
