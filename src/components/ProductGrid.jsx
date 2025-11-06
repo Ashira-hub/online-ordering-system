@@ -11,7 +11,12 @@ export default function ProductGrid({ q = '', priceMin = '', priceMax = '', stor
         const normalized = (res.data || []).map(p => ({
           id: String(p.id),
           name: p.title,
-          image: Array.isArray(p.images) ? p.images[0] : p.images,
+          image: (() => {
+            const raw = Array.isArray(p.images) ? p.images[0] : p.images;
+            const url = typeof raw === 'string' ? raw : '';
+            const isHttp = /^https?:\/\//i.test(url);
+            return isHttp ? url : 'https://via.placeholder.com/600x400?text=Image+Unavailable';
+          })(),
           description: p.description,
           price: Number(p.price) || 0,
         }));

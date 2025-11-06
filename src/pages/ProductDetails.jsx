@@ -93,7 +93,17 @@ export default function ProductDetails() {
       <div style={styles.layout}>
         <div style={styles.mediaCol}>
           <div style={styles.mediaBox}>
-            <img src={product?.image} alt={product?.name || ''} style={styles.hero} />
+            <img
+              src={product?.image}
+              alt={product?.name || ''}
+              style={styles.hero}
+              onError={(e) => {
+                if (!e.target.dataset.fallback) {
+                  e.target.dataset.fallback = '1';
+                  e.target.src = 'https://via.placeholder.com/600x400?text=Image+Unavailable';
+                }
+              }}
+            />
           </div>
         </div>
 
