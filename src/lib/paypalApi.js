@@ -15,8 +15,14 @@ export async function createPaypalOrder({ currency = 'USD', value, description, 
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ currency, value, description, returnUrl, cancelUrl, items, brandName, locale, shippingPreference })
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data?.error ? (typeof data.error === 'string' ? data.error : JSON.stringify(data.error)) : 'Failed to create PayPal order');
+  const isJson = (res.headers.get('content-type') || '').includes('application/json');
+  const data = isJson ? await res.json() : await res.text();
+  if (!res.ok) {
+    const msg = isJson
+      ? (data?.error ? (typeof data.error === 'string' ? data.error : JSON.stringify(data.error)) : `HTTP ${res.status}`)
+      : `HTTP ${res.status} ${typeof data === 'string' ? data.slice(0, 300) : ''}`;
+    throw new Error(msg);
+  }
   return data; // { id }
 }
 
@@ -26,7 +32,13 @@ export async function capturePaypalOrder(orderId) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ orderId })
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data?.error ? (typeof data.error === 'string' ? data.error : JSON.stringify(data.error)) : 'Failed to capture PayPal order');
+  const isJson = (res.headers.get('content-type') || '').includes('application/json');
+  const data = isJson ? await res.json() : await res.text();
+  if (!res.ok) {
+    const msg = isJson
+      ? (data?.error ? (typeof data.error === 'string' ? data.error : JSON.stringify(data.error)) : `HTTP ${res.status}`)
+      : `HTTP ${res.status} ${typeof data === 'string' ? data.slice(0, 300) : ''}`;
+    throw new Error(msg);
+  }
   return data; // PayPal capture response
 }
