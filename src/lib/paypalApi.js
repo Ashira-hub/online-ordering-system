@@ -2,10 +2,19 @@
 // Ensure the server is running (npm run server) on http://localhost:4000
 
 // Resolve API base across Vite and CRA, local and deployed
+const hostname = (typeof window !== 'undefined' && window.location && window.location.hostname) || '';
+const isLocal =
+  hostname === 'localhost' ||
+  hostname === '127.0.0.1' ||
+  hostname === '::1' ||
+  /^192\.168\./.test(hostname) ||
+  /^10\./.test(hostname) ||
+  /^172\.(1[6-9]|2\d|3[0-1])\./.test(hostname);
+
 const API_BASE =
   (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE) ||
   (typeof process !== 'undefined' && process.env && process.env.REACT_APP_API_BASE) ||
-  (typeof window !== 'undefined' && window.location && window.location.hostname === 'localhost'
+  (isLocal
     ? 'http://localhost:4000'
     : (typeof window !== 'undefined' && window.location && window.location.origin) || '');
 
