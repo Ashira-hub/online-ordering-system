@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import products from '../data/products';
+import api from '../data/api';
 import { useCart } from '../components/CartContext';
 
 export default function ProductDetails() {
@@ -12,7 +12,30 @@ export default function ProductDetails() {
   const [form, setForm] = useState({ name: '', card: '', exp: '', cvv: '' });
   const [error, setError] = useState('');
 
-  const product = useMemo(() => products.find(p => p.id === id), [id]);
+  const [product, setProduct] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      try {
+        const res = await api.get(`/products/${id}`);
+        if (!active) return;
+        const p = res.data;
+        const normalized = {
+          id: String(p.id),
+          name: p.title,
+          image: Array.isArray(p.images) ? p.images[0] : p.images,
+          description: p.description,
+          price: Number(p.price) || 0,
+        };
+        setProduct(normalized);
+      } catch (_e) {
+        setProduct(null);
+      }
+    };
+    load();
+    return () => { active = false; };
+  }, [id]);
 
   if (!product) {
     return (
@@ -26,6 +49,7 @@ export default function ProductDetails() {
   }
 
   const addToCart = () => {
+    if (!product) return;
     for (let i = 0; i < Math.max(1, qty); i++) addItem(product);
   };
 
@@ -61,7 +85,7 @@ export default function ProductDetails() {
         <div style={styles.breadcrumb}>
           <button style={styles.crumbBtn} onClick={() => navigate('/')}>Products</button>
           <span style={{ opacity: 0.6 }}> / </span>
-          <span style={{ color: '#111827' }}>{product.name}</span>
+          <span style={{ color: '#111827' }}>{product?.name || '...'}</span>
         </div>
         <button style={styles.topRightBackBtn} onClick={() => navigate(-1)}>Back</button>
       </div>
@@ -69,7 +93,7 @@ export default function ProductDetails() {
       <div style={styles.layout}>
         <div style={styles.mediaCol}>
           <div style={styles.mediaBox}>
-            <img src={product.image} alt={product.name} style={styles.hero} />
+            <img src={product?.image} alt={product?.name || ''} style={styles.hero} />
           </div>
         </div>
 
@@ -82,14 +106,14 @@ export default function ProductDetails() {
             </div>
           </div>
 
-          <h1 style={styles.title}>{product.name}</h1>
-          {product.store && <div style={styles.storeLine}>{product.store}</div>}
+          <h1 style={styles.title}>{product?.name || '...'}</h1>
+          {product?.store && <div style={styles.storeLine}>{product.store}</div>}
           <div style={styles.priceRow}>
-            <span style={styles.price}>${product.price.toFixed(2)}</span>
+            <span style={styles.price}>${(product?.price ?? 0).toFixed(2)}</span>
             <span style={styles.ship}>Free shipping</span>
           </div>
 
-          <p style={styles.desc}>{product.description}</p>
+          <p style={styles.desc}>{product?.description}</p>
 
           <div style={styles.controls}>
             <div style={styles.qtyBox}>
@@ -152,7 +176,7 @@ export default function ProductDetails() {
               </div>
               <div style={styles.modalActions}>
                 <button type="button" onClick={() => setPayOpen(false)} style={styles.cancelBtn}>Cancel</button>
-                <button type="submit" style={styles.payBtn}>Pay ${(product.price * qty).toFixed(2)}</button>
+                <button type="submit" style={styles.payBtn}>Pay ${(((product?.price ?? 0) * qty).toFixed(2))}</button>
               </div>
             </form>
           </div>

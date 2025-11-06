@@ -46,6 +46,12 @@ export default function ProductCard({ product }) {
           >
             Add to Cart
           </button>
+          <button
+            style={{ ...styles.btn, background: '#111827' }}
+            onClick={(e) => { e.stopPropagation(); addItem(product); navigate('/?checkout=1'); }}
+          >
+            Buy Now
+          </button>
         </div>
       </div>
     </div>

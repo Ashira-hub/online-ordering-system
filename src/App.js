@@ -10,18 +10,13 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import AccountsAdmin from './pages/AccountsAdmin';
 import ProductDetails from './pages/ProductDetails';
-import products from './data/products';
 
 function App() {
   const [storeFilter, setStoreFilter] = useState('all');
   const [q, setQ] = useState('');
   const [priceMin, setPriceMin] = useState('');
   const [priceMax, setPriceMax] = useState('');
-  const stores = useMemo(() => {
-    const exclude = new Set(['Crispy Bites', 'Pepperoni Plaza', 'Veggie Delight', 'Fry Shack', 'Pasta House', 'Taco Street']);
-    const set = new Set(products.map(p => p.store).filter(Boolean).filter(name => !exclude.has(name)));
-    return ['all', ...Array.from(set)];
-  }, []);
+  const stores = useMemo(() => ['all'], []);
   return (
     <AuthProvider>
       <CartProvider>
