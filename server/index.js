@@ -3,6 +3,7 @@ require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
 const fetch = require('node-fetch');
+const fs = require('fs');
 const notificationapi = require('notificationapi-node-server-sdk').default;
 
 const app = express();
@@ -18,6 +19,10 @@ const {
   NOTIFICATION_API_CLIENT_SECRET,
   NOTIFICATION_DEFAULT_TO
 } = process.env;
+
+// Detect built client assets (for single-service deploys)
+const clientBuildPath = path.join(__dirname, '..', 'build');
+const HAS_CLIENT_BUILD = fs.existsSync(clientBuildPath);
 
 if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) {
   console.warn('[paypal] Missing PAYPAL_CLIENT_ID or PAYPAL_CLIENT_SECRET in environment.');
@@ -276,27 +281,28 @@ app.post('/api/paypal/capture-order', async (req, res) => {
     res.status(500).json({ error: 'Failed to capture PayPal order' });
   }
 });
-app.get('/', (_req, res) => {
-  res.type('html').send(`
-    <html>
-      <head><title>PayPal API</title></head>
-      <body style="font-family: ui-sans-serif, system-ui; padding: 24px;">
-        <h2>PayPal API server is running</h2>
-        <p>Use the following endpoints:</p>
-        <ul>
-          <li>POST <code>/api/paypal/create-order</code></li>
-          <li>POST <code>/api/paypal/capture-order</code></li>
-          <li>GET <code>/api/health</code></li>
-        </ul>
-      </body>
-    </html>
-  `);
-});
+if (!HAS_CLIENT_BUILD) {
+  app.get('/', (_req, res) => {
+    res.type('html').send(`
+      <html>
+        <head><title>PayPal API</title></head>
+        <body style="font-family: ui-sans-serif, system-ui; padding: 24px;">
+          <h2>PayPal API server is running</h2>
+          <p>Use the following endpoints:</p>
+          <ul>
+            <li>POST <code>/api/paypal/create-order</code></li>
+            <li>POST <code>/api/paypal/capture-order</code></li>
+            <li>GET <code>/api/health</code></li>
+          </ul>
+        </body>
+      </html>
+    `);
+  });
+}
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 
 // Products filtering API
-const fs = require('fs');
 const productsPath = path.join(__dirname, 'data', 'products.json');
 app.get('/api/products', (_req, res) => {
   try {
@@ -337,6 +343,15 @@ app.get('/api/products', (_req, res) => {
     res.status(500).json({ error: 'Failed to load products' });
   }
 });
+
+// Serve client build and SPA fallback when present
+if (HAS_CLIENT_BUILD) {
+  app.use(express.static(clientBuildPath));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api/')) return next();
+    res.sendFile(path.join(clientBuildPath, 'index.html'));
+  });
+}
 
 app.listen(PORT, () => {
   console.log(`[server] PayPal API server running on http://localhost:${PORT}`);
