@@ -7,7 +7,7 @@ export default function ProductGrid({ sort = 'default', storeFilter = 'all', q =
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const base = process.env.REACT_APP_API_BASE || 'https://online-ordering-system-production-3965.up.railway.app/';
+    const base = process.env.REACT_APP_API_BASE || 'http://localhost:4000';
     const params = new URLSearchParams();
     if (storeFilter && storeFilter !== 'all') params.set('store', storeFilter);
     if (sort && sort !== 'default') params.set('sort', sort);
